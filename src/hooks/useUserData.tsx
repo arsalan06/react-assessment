@@ -1,48 +1,39 @@
-import axios from "axios";
 import { useContext, useEffect, useState } from "react";
 import { Result, UserApiResponse } from "../utils/userInterface";
 import { UserFilterContext } from "../context/UserFilterProvider";
+import { RootState, dispatch, useSelector } from "../redux/store";
+import { getAllUserAction } from "../redux/userSlice";
 // custom hook
 function useUserData() {
+  // const dispatch = useDispatch();
+  const { userList } = useSelector((state: RootState) => state.userReducer);
   const filterContext = useContext(UserFilterContext);
-  const [userArray, setUserArray] = useState<UserApiResponse>();
-  const [userData, setUserData] = useState<UserApiResponse>();
+  const [userArray, setUserArray] = useState<UserApiResponse>()
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    handleApiCall(filterContext?.page, filterContext?.filterUserData);
-  }, []);
-
-  const handleApiCall = (
-    pageNumber: number | undefined,
-    genderValue: string | null | undefined
-  ) => {
     setLoading(true);
-    let url;
-    // checking the user gender filter if have value then get data accordingly
-    if (genderValue) {
-      url = `https://randomuser.me/api/?page=${pageNumber}&results=10&gender=${genderValue}`;
-    } else {
-      url = `https://randomuser.me/api/?page=${pageNumber}&results=10`;
+    dispatch(getAllUserAction());
+  }, []);
+  useEffect(() => {
+    if (userList.results.length > 0) {
+      setLoading(false);
+      if (filterContext?.filterUserData) {
+        const filterArray = userList.results?.filter(
+          (item: Result) => item.gender === filterContext?.filterUserData
+        );
+        setUserArray({results:filterArray});
+      } else {
+        setUserArray(userList);
+      }
     }
-    axios
-      .get(url)
-      .then((res) => {
-        setUserArray(res.data);
-        setUserData(res.data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.log(error);
-        setLoading(false);
-      });
-  };
+  }, [userList]);
 
   // search user handler
 
   const handleUserSearch = (value: string) => {
     let searchedRecords: Result[] = [];
-    userData?.results.map((user) => {
+    userList?.results.map((user: Result) => {
       const fname = user?.name.first?.toString().toLowerCase();
       const lname = user?.name.last?.toString().toLowerCase();
       const fullName =
@@ -61,25 +52,19 @@ function useUserData() {
     });
   };
 
-  // get data page according to page
-  const handlePageChange = (
-    event: React.ChangeEvent<unknown>,
-    value: number
-  ) => {
-    filterContext?.setPage(value);
-    handleApiCall(value, filterContext?.filterUserData);
-  };
-
   // filter user according to gender
   const handleFilterChange = (event: any, value: string | null) => {
     filterContext?.setFilterUserData(value);
-    handleApiCall(filterContext?.page, value);
+    console.log(value)
+    const filterArray = userList.results?.filter(
+      (item: Result) => item.gender.toString().toLowerCase() === value?.toString().toLowerCase()
+    );
+    setUserArray({results:filterArray});
   };
 
   return {
     loading,
     userArray,
-    handlePageChange,
     handleFilterChange,
     handleUserSearch,
   };

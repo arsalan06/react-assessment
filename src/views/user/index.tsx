@@ -16,12 +16,13 @@ import {
   CircularProgress,
   Pagination,
   Stack,
+  TablePagination,
   TextField,
   Typography,
 } from "@mui/material";
 import { StyledButton } from "../../components/ButtonComponent";
 import { useNavigate } from "react-router-dom";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { UserFilterContext } from "../../context/UserFilterProvider";
 import useUserData from "../../hooks/useUserData";
 const top100Films = ["female", "male"];
@@ -33,10 +34,25 @@ export default function CustomizedTables() {
   const {
     handleUserSearch,
     handleFilterChange,
-    handlePageChange,
     userArray,
     loading,
   } = useUserData();
+  const [page, setPage] = useState(2);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const handleChangePage = (
+    event: React.MouseEvent<HTMLButtonElement> | null,
+    newPage: number
+  ) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
   return (
     <MainCard>
       <Stack
@@ -105,7 +121,7 @@ export default function CustomizedTables() {
                 <CircularProgress />
               </StyledTableCell>
             ) : (
-              userArray?.results?.map((user) => (
+              userArray?.results?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((user) => (
                 <StyledTableRow key={user?.login?.uuid}>
                   <StyledTableCell align="left">
                     <Avatar alt="Remy Sharp" src={user.picture.medium} />
@@ -134,14 +150,18 @@ export default function CustomizedTables() {
             )}
           </TableBody>
         </Table>
-      </TableContainer>
-      <Stack spacing={2} sx={{ mt: 2 }}>
-        <Pagination
-          count={100}
-          page={filterContext?.page}
-          onChange={handlePageChange}
+        <TablePagination
+          rowsPerPageOptions={[10, 20, 30]}
+          colSpan={3}
+          count={userArray?.results?.length || 0}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          showFirstButton
+          showLastButton
         />
-      </Stack>
+      </TableContainer>
     </MainCard>
   );
 }

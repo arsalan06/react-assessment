@@ -19,7 +19,7 @@ You will also see any lint errors in the console.
 ## Project Detail
 i have divided project into two branches in main and dev 
 
-in main branch code functionality are working with API like filter and pagination working on server side 
+get all user from api with redux
 
 In this project i have create two routes first is User listing and Second is User Detail.
 
@@ -31,7 +31,6 @@ i used custom hook to call API and other handler like filter user on the basis o
 
 i used context API to persist the filter
 
-I don't use Redux as it is not mention in the requirements
 
 I have added Flag on the basis of user country in user detail page
 
